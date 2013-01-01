@@ -137,7 +137,7 @@ int main()
   );
 
   Display<foldl<mrr::mp::minus, i_0, tlist<i_4,i_2>>::type>::display(
-    "foldl<add<int>, constant<int, 0>, tl<constant<int, 4>, constant<int, 2>>"
+    "foldl<minus<int>, constant<int, 0>, tl<constant<int, 4>, constant<int, 2>>"
   );
 
   std::cout << "\n==================== foldr ====================\n";
@@ -177,7 +177,7 @@ int main()
     "last<tl<int, double, char, float>>"
   );
 
-# if 0   // Fails from static_assert as expected
+#if 0   // Fails from static_assert as expected
   Display<last<tlist<>>::type>::display(
     "last<tl<>>"
   );

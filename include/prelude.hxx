@@ -77,10 +77,7 @@ template <typename T>                                       struct id;
 template <typename Seq>                                     struct init;
 template <typename Seq>                                     struct last;
 template <typename Seq>                                     struct length;
-template <
-  template <typename> class Functor,
-  typename Seq
->                                                           struct map;
+template <template <typename> class Functor, typename Seq>  struct map;
 template <typename Number>                                  struct negate;
 template <typename Elem, typename Seq>                      struct notElem;
 template <typename Constant>                                struct not_;
@@ -103,6 +100,12 @@ namespace detail {
 // Prototypes
 template <template <typename...> class T, typename... Args>
                                                       struct concat_wttp;
+template <
+  template <typename> class Functor,
+  typename Ret,
+  typename Seq
+>
+                                                      struct map_wetp;
 template <typename Ret, typename N, typename T>       struct replicate_wetp;
 template <typename Ret, typename Seq>                 struct reverse_wetp;
 template <typename N, typename Ret, typename Seq>     struct take_wetp;
@@ -206,6 +209,50 @@ struct concat_wttp<T>
   using type = T<>;
 };
 
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// map_wetp
+//
+template <
+  template <typename> class Functor,
+  typename Ret,
+  typename Seq
+>
+struct map_wetp;
+
+
+template <
+  template <typename> class Functor,
+  typename Ret,
+  template <typename...> class SeqHolder
+>
+struct map_wetp<Functor, Ret, SeqHolder<>>
+{
+  using type = Ret;
+};
+
+
+
+template <
+  template <typename> class Functor,
+  template <typename...> class RetHolder,
+  typename... RetArgs,
+  template <typename...> class SeqHolder,
+  typename Arg,
+  typename... Args
+>
+struct map_wetp<Functor, RetHolder<RetArgs...>, SeqHolder<Arg,Args...>>
+{
+  using type = typename
+    map_wetp<
+      Functor,
+      RetHolder<RetArgs..., typename Functor<Arg>::type>,
+      SeqHolder<Args...>
+    >::type
+  ;
+};
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -421,6 +468,10 @@ struct zip_wetp<
 //
 
 template <template <typename> class Pred, typename Seq>
+struct all;
+
+
+template <template <typename> class Pred, typename Seq>
 struct all
 {
   using type = typename std::true_type::type;
@@ -448,6 +499,10 @@ struct all<Pred, Seq<Head, Tail...>>
 //
 //  and_
 //
+
+template <typename Seq>
+struct and_;
+
 
 template <typename Seq>
 struct and_
@@ -479,6 +534,10 @@ struct and_<Seq<std::true_type, Tail...>>
 //
 //  any
 //
+
+template <template <typename> class Pred, typename Seq>
+struct any;
+
 
 template <template <typename> class Pred, typename Seq>
 struct any
@@ -513,6 +572,7 @@ struct any<Pred, Seq<Head, Tail...>>
 template <typename Seq, typename N>
 struct at;
 
+
 template <
   template <typename...> class Seq,
   typename Head,
@@ -546,6 +606,10 @@ struct at<Seq<Head, Tail...>, std::integral_constant<std::size_t, 0>>
 //
 
 template <typename... Args>
+struct concat;
+
+
+template <typename... Args>
 struct concat
 {
   using type = typename detail::concat_wttp<tlist, Args...>::type;
@@ -559,6 +623,7 @@ struct concat
 
 template <typename N, typename Seq>
 struct drop;
+
 
 // Base case: No more elements in the typelist
 template <
@@ -602,11 +667,12 @@ struct drop<std::integral_constant<std::size_t, N>, Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-// elem
+//  elem
 //
 
 template <typename Elem, typename Seq>
 struct elem;
+
 
 // Base case:
 template <
@@ -641,12 +707,30 @@ struct elem<Elem, Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-// foldl
+//  foldl
 //
 
 template <template<typename , typename> class BinFunc, typename A, typename Seq>
 struct foldl;
 
+
+// Base Case: No more elements in the sequence.
+template <
+  template <typename, typename> class BinaryFunc,
+  typename CurVal,
+  template <typename...> class Seq
+>
+struct foldl<
+  BinaryFunc,
+  CurVal,
+  Seq<>
+>
+{
+  using type = CurVal;
+};
+
+
+// Recursive Case:
 template <
   template <typename, typename> class BinaryFunc,
   typename CurVal,
@@ -670,12 +754,22 @@ struct foldl<
 };
 
 
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+//  foldr
+//
+
+template <template<typename , typename> class BinFunc, typename A, typename Seq>
+struct foldr;
+
+
+// Base Case: No more elements in the sequence.
 template <
   template <typename, typename> class BinaryFunc,
   typename CurVal,
   template <typename...> class Seq
 >
-struct foldl<
+struct foldr<
   BinaryFunc,
   CurVal,
   Seq<>
@@ -685,15 +779,7 @@ struct foldl<
 };
 
 
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//
-// foldl
-//
-
-template <template<typename , typename> class BinFunc, typename A, typename Seq>
-struct foldr;
-
+// Recursive Case:
 template <
   template <typename, typename> class BinaryFunc,
   typename CurVal,
@@ -716,21 +802,6 @@ struct foldr<
 };
 
 
-template <
-  template <typename, typename> class BinaryFunc,
-  typename CurVal,
-  template <typename...> class Seq
->
-struct foldr<
-  BinaryFunc,
-  CurVal,
-  Seq<>
->
-{
-  using type = CurVal;
-};
-
-
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
@@ -739,6 +810,7 @@ struct foldr<
 
 template <typename Pair>
 struct fst;
+
 
 template <
   template <typename...> class Pair,
@@ -759,6 +831,7 @@ struct fst<Pair<First, Second>>
 template <typename Seq>
 struct head;
 
+
 template <
   template <typename...> class Seq,
   typename Head,
@@ -776,6 +849,10 @@ struct head<Seq<Head, Tail...>>
 //
 
 template <typename T>
+struct id;
+
+
+template <typename T>
 struct id
 {
   using type = T;
@@ -790,6 +867,7 @@ struct id
 
 template <typename Seq>
 struct init;
+
 
 template <
   template <typename...> class Seq,
@@ -817,6 +895,7 @@ struct init<Seq<Args...>>
 
 template <typename Seq>
 struct last;
+
 
 template <
   template <typename...> class Seq,
@@ -846,6 +925,7 @@ struct last<Seq<Args...>>
 template <typename Seq>
 struct length;
 
+
 template <
   template <typename...> class Seq,
   typename... Args
@@ -860,8 +940,32 @@ struct length<Seq<Args...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
+//  map
+//
+
+template <template <typename> class Functor, typename Seq>
+struct map;
+
+
+template <
+  template <typename> class Functor,
+  typename Seq
+>
+struct map
+{
+  using type = typename detail::map_wetp<Functor,tlist<>,Seq>::type;
+};
+
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
 //  negate
 //
+
+template <typename Number>
+struct negate;
+
 
 template <
   typename NumType,
@@ -886,6 +990,11 @@ public:
 //
 //  notElem
 //
+
+template <typename Elem, typename Seq>
+struct notElem;
+
+
 template <typename Elem, typename Seq>
 struct notElem
 {
@@ -900,6 +1009,7 @@ struct notElem
 
 template <typename Constant>
 struct not_;
+
 
 template <>
 struct not_<std::true_type>
@@ -918,6 +1028,10 @@ struct not_<std::false_type>
 //
 //  null
 //
+
+template <typename Seq>
+struct null;
+
 
 template <typename Seq>
 struct null
@@ -940,6 +1054,10 @@ struct null<Seq<Head,Tail...>>
 //
 //  or_
 //
+
+template <typename Seq>
+struct or_;
+
 
 // Base case: No more elements meaning they must have all been false
 template <typename Seq>
@@ -972,29 +1090,12 @@ struct or_<Seq<std::false_type, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  tail
+//  replicate
 //
 
-template <typename Seq>
-struct tail;
-
-template <
-  template <typename...> class Seq,
-  typename Head,
-  typename... Tail
->
-struct tail<Seq<Head, Tail...>>
-{
-  using type = typename tlist<Tail...>::type;
-};
-
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//
-// replicate
-//
 template <typename N, typename T>
 struct replicate;
+
 
 template <
   std::size_t N,
@@ -1013,10 +1114,12 @@ struct replicate<std::integral_constant<std::size_t, N>, T>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-// reverse
+//  reverse
 //
+
 template <typename Seq>
 struct reverse;
+
 
 template <
   template <typename...> class Seq,
@@ -1035,12 +1138,32 @@ struct reverse<Seq<Args...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
+//  tail
+//
+
+template <typename Seq>
+struct tail;
+
+
+template <
+  template <typename...> class Seq,
+  typename Head,
+  typename... Tail
+>
+struct tail<Seq<Head, Tail...>>
+{
+  using type = typename tlist<Tail...>::type;
+};
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
 //  take
 //
 
-
 template <typename N, typename Seq>
 struct take;
+
 
 template <
   typename SizeType,
@@ -1061,11 +1184,12 @@ struct take<std::integral_constant<SizeType, N>, Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-// zip
+//  zip
 //
 
 template <typename SeqOne, typename SeqTwo>
 struct zip;
+
 
 template <
   template <typename...> class Seq1, typename... Args1,
@@ -1076,63 +1200,6 @@ struct zip<Seq1<Args1...>, Seq2<Args2...> >
   using type = typename
     detail::zip_wetp<tlist<>, Seq1<Args1...>, Seq2<Args2...> >::type
   ;
-};
-
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//
-// map_wetp
-//
-template <
-  template <typename> class Functor,
-  typename Ret,
-  typename Seq
->
-struct map_wetp;
-
-
-template <
-  template <typename> class Functor,
-  typename Ret,
-  template <typename...> class SeqHolder
->
-struct map_wetp<Functor, Ret, SeqHolder<>>
-{
-  using type = Ret;
-};
-
-
-
-template <
-  template <typename> class Functor,
-  template <typename...> class RetHolder,
-  typename... RetArgs,
-  template <typename...> class SeqHolder,
-  typename Arg,
-  typename... Args
->
-struct map_wetp<Functor, RetHolder<RetArgs...>, SeqHolder<Arg,Args...>>
-{
-  using type = typename
-    map_wetp<
-      Functor,
-      RetHolder<RetArgs..., typename Functor<Arg>::type>,
-      SeqHolder<Args...>
-    >::type
-  ;
-};
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-//
-// map
-//
-template <
-  template <typename> class Functor,
-  typename Seq
->
-struct map
-{
-  using type = typename map_wetp<Functor,tlist<>,Seq>::type;
 };
 
 
