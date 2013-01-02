@@ -97,7 +97,7 @@ int main()
 
   std::cout << "\n==================== concat ====================\n";
   Display<concat<tlist<int, double>, tlist<char, float>>::type>::display(
-    "concat<tl, tl<int, double>, tl<char, float>>"
+    "concat<tl<int, double>, tl<char, float>>"
   );
 
 
