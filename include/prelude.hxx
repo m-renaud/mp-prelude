@@ -53,41 +53,131 @@ namespace prelude {
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-template <template <typename> class Pred, typename Seq>     struct all;
-template <typename Seq>                                     struct and_;
-template <template <typename> class Pred, typename Seq>     struct any;
-template <typename Seq, typename N>                         struct at;
-template <typename... Args>                                 struct concat;
-template <typename N, typename Seq>                         struct drop;
-template <typename Elem, typename Seq>                      struct elem;
+template <template <typename> class Pred, typename Seq>     struct all_impl;
+template <typename Seq>                                     struct and_impl;
+template <template <typename> class Pred, typename Seq>     struct any_impl;
+template <typename Seq, typename N>                         struct at_impl;
+template <typename... Args>                                 struct concat_impl;
+template <typename N, typename Seq>                         struct drop_impl;
+template <typename Elem, typename Seq>                      struct elem_impl;
 
 template <
   template<typename, typename> class BinFunc,
   typename A, typename Seq
->                                                           struct foldl;
+>                                                           struct foldl_impl;
 
 template <
   template<typename, typename> class BinFunc,
   typename A, typename Seq
->                                                           struct foldr;
+>                                                           struct foldr_impl;
 
-template <typename Pair>                                    struct fst;
-template <typename Seq>                                     struct head;
-template <typename T>                                       struct id;
-template <typename Seq>                                     struct init;
-template <typename Seq>                                     struct last;
-template <typename Seq>                                     struct length;
-template <template <typename> class Functor, typename Seq>  struct map;
-template <typename Number>                                  struct negate;
-template <typename Elem, typename Seq>                      struct notElem;
-template <typename Constant>                                struct not_;
-template <typename Seq>                                     struct null;
-template <typename Seq>                                     struct or_;
-template <typename N, typename T>                           struct replicate;
-template <typename Seq>                                     struct reverse;
-template <typename Seq>                                     struct tail;
-template <typename N, typename Seq>                         struct take;
-template <typename SeqOne, typename SeqTwo>                 struct zip;
+template <typename Pair>                                    struct fst_impl;
+template <typename Seq>                                     struct head_impl;
+template <typename T>                                       struct id_impl;
+template <typename Seq>                                     struct init_impl;
+template <typename Seq>                                     struct last_impl;
+template <typename Seq>                                     struct length_impl;
+template <template <typename> class Functor, typename Seq>  struct map_impl;
+template <typename Number>                                  struct negate_impl;
+template <typename Elem, typename Seq>                      struct not_elem_impl;
+template <typename Constant>                                struct not_impl;
+template <typename Seq>                                     struct null_impl;
+template <typename Seq>                                     struct or_impl;
+template <typename N, typename T>                           struct replicate_impl;
+template <typename Seq>                                     struct reverse_impl;
+template <typename Seq>                                     struct tail_impl;
+template <typename N, typename Seq>                         struct take_impl;
+template <typename SeqOne, typename SeqTwo>                 struct zip_impl;
+
+
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Template aliases...
+
+template <template <typename> class Pred, typename Seq>
+using all = typename all_impl<Pred,Seq>::type;
+
+template <typename Seq>
+using and_ = typename and_impl<Seq>::type;
+
+template <template <typename> class Pred, typename Seq>
+using any = typename any_impl<Pred,Seq>::type;
+
+template <typename Seq, typename N>
+using at = typename at_impl<Seq,N>::type;
+
+template <typename... Args>
+using concat = typename concat_impl<Args...>::type;
+
+template <typename N, typename Seq>
+using drop = typename drop_impl<N,Seq>::type;
+
+template <typename Elem, typename Seq>
+using elem = typename elem_impl<Elem,Seq>::type;
+
+template <
+  template<typename, typename> class BinFunc,
+  typename A, typename Seq
+>
+using foldl = typename foldl_impl<BinFunc,A,Seq>::type;
+
+template <
+  template<typename, typename> class BinFunc,
+  typename A, typename Seq
+>
+using foldr = typename foldr_impl<BinFunc,A,Seq>::type;
+
+template <typename Pair>
+using fst = typename fst_impl<Pair>::type;
+
+template <typename Seq>
+using head = typename head_impl<Seq>::type;
+
+template <typename T>
+using id = typename id_impl<T>::type;
+
+template <typename Seq>
+using init = typename init_impl<Seq>::type;
+
+template <typename Seq>
+using last = typename last_impl<Seq>::type;
+
+template <typename Seq>
+using length = typename length_impl<Seq>::type;
+
+template <template <typename> class Functor, typename Seq>
+using map = typename map_impl<Functor,Seq>::type;
+
+template <typename Number>
+using negate = typename negate_impl<Number>::type;
+
+template <typename Elem, typename Seq>
+using not_elem = typename not_elem_impl<Elem,Seq>::type;
+
+template <typename Constant>
+using not_ = typename not_impl<Constant>::type;
+
+template <typename Seq>
+using null = typename null_impl<Seq>::type;
+
+template <typename Seq>
+using or_ = typename or_impl<Seq>::type;
+
+template <typename N, typename T>
+using replicate = typename replicate_impl<N,T>::type;
+
+template <typename Seq>
+using reverse = typename reverse_impl<Seq>::type;
+
+template <typename Seq>
+using tail = typename tail_impl<Seq>::type;
+
+template <typename N, typename Seq>
+using take = typename take_impl<N,Seq>::type;
+
+template <typename SeqOne, typename SeqTwo>
+using zip = typename zip_impl<SeqOne,SeqTwo>::type;
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -468,13 +558,13 @@ struct zip_wetp<
 //
 
 template <template <typename> class Pred, typename Seq>
-struct all;
+struct all_impl;
 
 
 template <template <typename> class Pred, typename Seq>
-struct all
+struct all_impl
 {
-  using type = typename std::true_type::type;
+  using type = std::true_type;
 };
 
 template <
@@ -483,12 +573,12 @@ template <
   typename Head,
   typename... Tail
 >
-struct all<Pred, Seq<Head, Tail...>>
+struct all_impl<Pred, Seq<Head, Tail...>>
 {
   using type = typename
     std::conditional<
       Pred<Head>::type::value,
-      typename all<Pred, Seq<Tail...>>::type,
+      all<Pred, Seq<Tail...>>,
       std::false_type
     >::type
   ;
@@ -501,46 +591,46 @@ struct all<Pred, Seq<Head, Tail...>>
 //
 
 template <typename Seq>
-struct and_;
+struct and_impl;
 
 
 template <typename Seq>
-struct and_
+struct and_impl
 {
-  using type = typename std::true_type::type;
+  using type = std::true_type;
 };
 
 template <
   template <typename...> class Seq,
   typename... Tail
 >
-struct and_<Seq<std::false_type, Tail...>>
+struct and_impl<Seq<std::false_type, Tail...>>
 {
-  using type = typename std::false_type::type;
+  using type = std::false_type;
 };
 
 template <
   template <typename...> class Seq,
   typename... Tail
 >
-struct and_<Seq<std::true_type, Tail...>>
+struct and_impl<Seq<std::true_type, Tail...>>
 {
-  using type = typename and_<Seq<Tail...>>::type;
+  using type = and_<Seq<Tail...>>;
 };
 
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  any
+//  any_impl
 //
 
 template <template <typename> class Pred, typename Seq>
-struct any;
+struct any_impl;
 
 
 template <template <typename> class Pred, typename Seq>
-struct any
+struct any_impl
 {
   using type = typename std::false_type::type;
 };
@@ -551,13 +641,13 @@ template <
   typename Head,
   typename... Tail
 >
-struct any<Pred, Seq<Head, Tail...>>
+struct any_impl<Pred, Seq<Head, Tail...>>
 {
   using type = typename
     std::conditional<
       Pred<Head>::type::value,
       std::true_type,
-      typename any<Pred, Seq<Tail...>>::type
+      any<Pred, Seq<Tail...>>
     >::type
   ;
 
@@ -566,11 +656,11 @@ struct any<Pred, Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  at
+//  at_impl
 //
 
 template <typename Seq, typename N>
-struct at;
+struct at_impl;
 
 
 template <
@@ -579,10 +669,10 @@ template <
   typename... Tail,
   std::size_t N
 >
-struct at<Seq<Head, Tail...>, std::integral_constant<std::size_t, N>>
+struct at_impl<Seq<Head, Tail...>, std::integral_constant<std::size_t, N>>
 {
   using type = typename
-    at<
+    at_impl<
       Seq<Tail...>,
       std::integral_constant<std::size_t, N-1>
     >::type
@@ -594,7 +684,7 @@ template <
   typename Head,
   typename... Tail
 >
-struct at<Seq<Head, Tail...>, std::integral_constant<std::size_t, 0>>
+struct at_impl<Seq<Head, Tail...>, std::integral_constant<std::size_t, 0>>
 {
   using type = Head;
 };
@@ -602,15 +692,15 @@ struct at<Seq<Head, Tail...>, std::integral_constant<std::size_t, 0>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  concat
+//  concat_impl
 //
 
 template <typename... Args>
-struct concat;
+struct concat_impl;
 
 
 template <typename... Args>
-struct concat
+struct concat_impl
 {
   using type = typename detail::concat_wttp<tlist, Args...>::type;
 };
@@ -618,11 +708,11 @@ struct concat
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  drop
+//  drop_impl
 //
 
 template <typename N, typename Seq>
-struct drop;
+struct drop_impl;
 
 
 // Base case: No more elements in the typelist
@@ -630,7 +720,7 @@ template <
   std::size_t N,
   template <typename...> class Seq
 >
-struct drop<std::integral_constant<std::size_t, N>, Seq<>>
+struct drop_impl<std::integral_constant<std::size_t, N>, Seq<>>
 {
   using type = Seq<>;
 };
@@ -642,7 +732,7 @@ template <
   typename Head,
   typename... Tail
 >
-struct drop<std::integral_constant<std::size_t, 0>, Seq<Head,Tail...>>
+struct drop_impl<std::integral_constant<std::size_t, 0>, Seq<Head,Tail...>>
 {
   using type = Seq<Head,Tail...>;
 };
@@ -655,10 +745,10 @@ template <
   typename Head,
   typename... Tail
 >
-struct drop<std::integral_constant<std::size_t, N>, Seq<Head, Tail...>>
+struct drop_impl<std::integral_constant<std::size_t, N>, Seq<Head, Tail...>>
 {
   using type = typename
-    drop<
+    drop_impl<
       std::integral_constant<std::size_t, N-1>, Seq<Tail...>
     >::type
   ;
@@ -667,11 +757,11 @@ struct drop<std::integral_constant<std::size_t, N>, Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  elem
+//  elem_impl
 //
 
 template <typename Elem, typename Seq>
-struct elem;
+struct elem_impl;
 
 
 // Base case:
@@ -679,7 +769,7 @@ template <
   typename Elem,
   template <typename...> class Seq
 >
-struct elem<Elem, Seq<>>
+struct elem_impl<Elem, Seq<>>
 {
   using type = std::false_type;
 };
@@ -691,13 +781,13 @@ template <
   typename Head,
   typename... Tail
 >
-struct elem<Elem, Seq<Head, Tail...>>
+struct elem_impl<Elem, Seq<Head, Tail...>>
 {
   using type = typename
     std::conditional<
       (Elem::value == Head::value),
       std::true_type,
-      typename elem<Elem, Seq<Tail...>>::type
+      elem<Elem, Seq<Tail...>>
     >::type
   ;
 };
@@ -707,11 +797,11 @@ struct elem<Elem, Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  foldl
+//  foldl_impl
 //
 
 template <template<typename , typename> class BinFunc, typename A, typename Seq>
-struct foldl;
+struct foldl_impl;
 
 
 // Base Case: No more elements in the sequence.
@@ -720,7 +810,7 @@ template <
   typename CurVal,
   template <typename...> class Seq
 >
-struct foldl<
+struct foldl_impl<
   BinaryFunc,
   CurVal,
   Seq<>
@@ -738,14 +828,14 @@ template <
   typename Val,
   typename... Args
 >
-struct foldl<
+struct foldl_impl<
   BinaryFunc,
   CurVal,
   Seq<Val, Args...>
 >
 {
   using type = typename
-    foldl<
+    foldl_impl<
       BinaryFunc,
       typename BinaryFunc<CurVal, Val>::type,
       Seq<Args...>
@@ -756,11 +846,11 @@ struct foldl<
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  foldr
+//  foldr_impl
 //
 
 template <template<typename , typename> class BinFunc, typename A, typename Seq>
-struct foldr;
+struct foldr_impl;
 
 
 // Base Case: No more elements in the sequence.
@@ -769,7 +859,7 @@ template <
   typename CurVal,
   template <typename...> class Seq
 >
-struct foldr<
+struct foldr_impl<
   BinaryFunc,
   CurVal,
   Seq<>
@@ -787,7 +877,7 @@ template <
   typename Val,
   typename... Args
 >
-struct foldr<
+struct foldr_impl<
   BinaryFunc,
   CurVal,
   Seq<Val, Args...>
@@ -796,7 +886,7 @@ struct foldr<
   using type = typename
     BinaryFunc<
       Val,
-      typename foldr<BinaryFunc, CurVal, Seq<Args...>>::type
+      foldr<BinaryFunc, CurVal, Seq<Args...>>
     >::type
   ;
 };
@@ -805,11 +895,11 @@ struct foldr<
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  fst
+//  fst_impl
 //
 
 template <typename Pair>
-struct fst;
+struct fst_impl;
 
 
 template <
@@ -817,7 +907,7 @@ template <
   typename First,
   typename Second
 >
-struct fst<Pair<First, Second>>
+struct fst_impl<Pair<First, Second>>
 {
   using type = First;
 };
@@ -825,11 +915,11 @@ struct fst<Pair<First, Second>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  head
+//  head_impl
 //
 
 template <typename Seq>
-struct head;
+struct head_impl;
 
 
 template <
@@ -837,7 +927,7 @@ template <
   typename Head,
   typename... Tail
 >
-struct head<Seq<Head, Tail...>>
+struct head_impl<Seq<Head, Tail...>>
 {
   using type = Head;
 };
@@ -845,15 +935,15 @@ struct head<Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  id
+//  id_impl
 //
 
 template <typename T>
-struct id;
+struct id_impl;
 
 
 template <typename T>
-struct id
+struct id_impl
 {
   using type = T;
 };
@@ -862,18 +952,18 @@ struct id
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  init
+//  init_impl
 //
 
 template <typename Seq>
-struct init;
+struct init_impl;
 
 
 template <
   template <typename...> class Seq,
   typename... Args
 >
-struct init<Seq<Args...>>
+struct init_impl<Seq<Args...>>
 {
   static_assert(
     sizeof...(Args) > 0,
@@ -881,7 +971,7 @@ struct init<Seq<Args...>>
   );
 
   using type = typename
-    take<
+    take_impl<
       std::integral_constant<std::size_t, sizeof...(Args) - 1>, Seq<Args...>
     >::type
   ;
@@ -890,18 +980,18 @@ struct init<Seq<Args...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  last
+//  last_impl
 //
 
 template <typename Seq>
-struct last;
+struct last_impl;
 
 
 template <
   template <typename...> class Seq,
   typename... Args
 >
-struct last<Seq<Args...>>
+struct last_impl<Seq<Args...>>
 {
   static_assert(
     sizeof...(Args) > 0,
@@ -909,7 +999,7 @@ struct last<Seq<Args...>>
   );
 
   using type = typename
-    at<
+    at_impl<
       Seq<Args...>,
       std::integral_constant<std::size_t, sizeof...(Args) - 1>
     >::type
@@ -919,18 +1009,18 @@ struct last<Seq<Args...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  length
+//  length_impl
 //
 
 template <typename Seq>
-struct length;
+struct length_impl;
 
 
 template <
   template <typename...> class Seq,
   typename... Args
 >
-struct length<Seq<Args...>>
+struct length_impl<Seq<Args...>>
 {
   using type = typename
     std::integral_constant<std::size_t, sizeof...(Args)>::type
@@ -940,18 +1030,18 @@ struct length<Seq<Args...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  map
+//  map_impl
 //
 
 template <template <typename> class Functor, typename Seq>
-struct map;
+struct map_impl;
 
 
 template <
   template <typename> class Functor,
   typename Seq
 >
-struct map
+struct map_impl
 {
   using type = typename detail::map_wetp<Functor,tlist<>,Seq>::type;
 };
@@ -960,18 +1050,18 @@ struct map
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  negate
+//  negate_impl
 //
 
 template <typename Number>
-struct negate;
+struct negate_impl;
 
 
 template <
   typename NumType,
   NumType value
 >
-struct negate<std::integral_constant<NumType, value>>
+struct negate_impl<std::integral_constant<NumType, value>>
 {
 private:
   using SignedNumType = typename std::make_signed<NumType>::type;
@@ -988,53 +1078,53 @@ public:
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  notElem
+//  not_elem_impl
 //
 
 template <typename Elem, typename Seq>
-struct notElem;
+struct not_elem_impl;
 
 
 template <typename Elem, typename Seq>
-struct notElem
+struct not_elem_impl
 {
-  using type = typename not_<typename elem<Elem,Seq>::type>::type;
+  using type = not_<elem<Elem,Seq>>;
 };
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  not_
+//  not_impl
 //
 
 template <typename Constant>
-struct not_;
+struct not_impl;
 
 
 template <>
-struct not_<std::true_type>
+struct not_impl<std::true_type>
 {
-  using type = typename std::false_type::type;
+  using type = std::false_type;
 };
 
 template <>
-struct not_<std::false_type>
+struct not_impl<std::false_type>
 {
-  using type = typename std::true_type::type;
+  using type = std::true_type;
 };
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  null
+//  null_impl
 //
 
 template <typename Seq>
-struct null;
+struct null_impl;
 
 
 template <typename Seq>
-struct null
+struct null_impl
 {
   using type = std::true_type;
 };
@@ -1044,7 +1134,7 @@ template <
   typename Head,
   typename... Tail
 >
-struct null<Seq<Head,Tail...>>
+struct null_impl<Seq<Head,Tail...>>
 {
   using type = std::false_type;
 };
@@ -1052,18 +1142,18 @@ struct null<Seq<Head,Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  or_
+//  or_impl
 //
 
 template <typename Seq>
-struct or_;
+struct or_impl;
 
 
 // Base case: No more elements meaning they must have all been false
 template <typename Seq>
-struct or_
+struct or_impl
 {
-  using type = typename std::false_type::type;
+  using type = std::false_type;
 };
 
 // Base case: True encountered, making the ``or" true
@@ -1071,9 +1161,9 @@ template <
   template <typename...> class Seq,
   typename... Tail
 >
-struct or_<Seq<std::true_type, Tail...>>
+struct or_impl<Seq<std::true_type, Tail...>>
 {
-  using type =  typename std::true_type::type;
+  using type = std::true_type;
 };
 
 // Recursive case: False encountered, continue for the rest of the list
@@ -1081,27 +1171,27 @@ template <
   template <typename...> class Seq,
   typename... Tail
 >
-struct or_<Seq<std::false_type, Tail...>>
+struct or_impl<Seq<std::false_type, Tail...>>
 {
-  using type = typename or_<Seq<Tail...>>::type;
+  using type = or_<Seq<Tail...>>;
 };
 
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  replicate
+//  replicate_impl
 //
 
 template <typename N, typename T>
-struct replicate;
+struct replicate_impl;
 
 
 template <
   std::size_t N,
   typename T
 >
-struct replicate<std::integral_constant<std::size_t, N>, T>
+struct replicate_impl<std::integral_constant<std::size_t, N>, T>
 {
   using type = typename
     detail::replicate_wetp<
@@ -1112,20 +1202,21 @@ struct replicate<std::integral_constant<std::size_t, N>, T>
 
 
 
+
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  reverse
+//  reverse_impl
 //
 
 template <typename Seq>
-struct reverse;
+struct reverse_impl;
 
 
 template <
   template <typename...> class Seq,
   typename... Args
 >
-struct reverse<Seq<Args...>>
+struct reverse_impl<Seq<Args...>>
 {
   using type = typename
     detail::reverse_wetp<
@@ -1138,11 +1229,11 @@ struct reverse<Seq<Args...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  tail
+//  tail_impl
 //
 
 template <typename Seq>
-struct tail;
+struct tail_impl;
 
 
 template <
@@ -1150,7 +1241,7 @@ template <
   typename Head,
   typename... Tail
 >
-struct tail<Seq<Head, Tail...>>
+struct tail_impl<Seq<Head, Tail...>>
 {
   using type = typename tlist<Tail...>::type;
 };
@@ -1158,12 +1249,11 @@ struct tail<Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  take
+//  take_impl
 //
 
 template <typename N, typename Seq>
-struct take;
-
+struct take_impl;
 
 template <
   typename SizeType,
@@ -1172,7 +1262,7 @@ template <
   typename Head,
   typename... Tail
 >
-struct take<std::integral_constant<SizeType, N>, Seq<Head, Tail...>>
+struct take_impl<std::integral_constant<SizeType, N>, Seq<Head, Tail...>>
 {
   using type = typename
     detail::take_wetp<
@@ -1184,18 +1274,18 @@ struct take<std::integral_constant<SizeType, N>, Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  zip
+//  zip_impl
 //
 
 template <typename SeqOne, typename SeqTwo>
-struct zip;
+struct zip_impl;
 
 
 template <
   template <typename...> class Seq1, typename... Args1,
   template <typename...> class Seq2, typename... Args2
 >
-struct zip<Seq1<Args1...>, Seq2<Args2...> >
+struct zip_impl<Seq1<Args1...>, Seq2<Args2...> >
 {
   using type = typename
     detail::zip_wetp<tlist<>, Seq1<Args1...>, Seq2<Args2...> >::type
