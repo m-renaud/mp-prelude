@@ -53,6 +53,13 @@ namespace prelude {
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+namespace detail {
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 template <template <typename> class Pred, typename Seq>     struct all_impl;
 template <typename Seq>                                     struct and_impl;
 template <template <typename> class Pred, typename Seq>     struct any_impl;
@@ -89,95 +96,99 @@ template <typename Seq>                                     struct tail_impl;
 template <typename N, typename Seq>                         struct take_impl;
 template <typename SeqOne, typename SeqTwo>                 struct zip_impl;
 
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+} // namespace detail
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Template aliases...
 
 template <template <typename> class Pred, typename Seq>
-using all = typename all_impl<Pred,Seq>::type;
+using all = typename detail::all_impl<Pred,Seq>::type;
 
 template <typename Seq>
-using and_ = typename and_impl<Seq>::type;
+using and_ = typename detail::and_impl<Seq>::type;
 
 template <template <typename> class Pred, typename Seq>
-using any = typename any_impl<Pred,Seq>::type;
+using any = typename detail::any_impl<Pred,Seq>::type;
 
 template <typename Seq, typename N>
-using at = typename at_impl<Seq,N>::type;
+using at = typename detail::at_impl<Seq,N>::type;
 
 template <typename... Args>
-using concat = typename concat_impl<Args...>::type;
+using concat = typename detail::concat_impl<Args...>::type;
 
 template <typename N, typename Seq>
-using drop = typename drop_impl<N,Seq>::type;
+using drop = typename detail::drop_impl<N,Seq>::type;
 
 template <typename Elem, typename Seq>
-using elem = typename elem_impl<Elem,Seq>::type;
+using elem = typename detail::elem_impl<Elem,Seq>::type;
 
 template <
   template<typename, typename> class BinFunc,
   typename A, typename Seq
 >
-using foldl = typename foldl_impl<BinFunc,A,Seq>::type;
+using foldl = typename detail::foldl_impl<BinFunc,A,Seq>::type;
 
 template <
   template<typename, typename> class BinFunc,
   typename A, typename Seq
 >
-using foldr = typename foldr_impl<BinFunc,A,Seq>::type;
+using foldr = typename detail::foldr_impl<BinFunc,A,Seq>::type;
 
 template <typename Pair>
-using fst = typename fst_impl<Pair>::type;
+using fst = typename detail::fst_impl<Pair>::type;
 
 template <typename Seq>
-using head = typename head_impl<Seq>::type;
+using head = typename detail::head_impl<Seq>::type;
 
 template <typename T>
-using id = typename id_impl<T>::type;
+using id = typename detail::id_impl<T>::type;
 
 template <typename Seq>
-using init = typename init_impl<Seq>::type;
+using init = typename detail::init_impl<Seq>::type;
 
 template <typename Seq>
-using last = typename last_impl<Seq>::type;
+using last = typename detail::last_impl<Seq>::type;
 
 template <typename Seq>
-using length = typename length_impl<Seq>::type;
+using length = typename detail::length_impl<Seq>::type;
 
 template <template <typename> class Functor, typename Seq>
-using map = typename map_impl<Functor,Seq>::type;
+using map = typename detail::map_impl<Functor,Seq>::type;
 
 template <typename Number>
-using negate = typename negate_impl<Number>::type;
+using negate = typename detail::negate_impl<Number>::type;
 
 template <typename Elem, typename Seq>
-using not_elem = typename not_elem_impl<Elem,Seq>::type;
+using not_elem = typename detail::not_elem_impl<Elem,Seq>::type;
 
 template <typename Constant>
-using not_ = typename not_impl<Constant>::type;
+using not_ = typename detail::not_impl<Constant>::type;
 
 template <typename Seq>
-using null = typename null_impl<Seq>::type;
+using null = typename detail::null_impl<Seq>::type;
 
 template <typename Seq>
-using or_ = typename or_impl<Seq>::type;
+using or_ = typename detail::or_impl<Seq>::type;
 
 template <typename N, typename T>
-using replicate = typename replicate_impl<N,T>::type;
+using replicate = typename detail::replicate_impl<N,T>::type;
 
 template <typename Seq>
-using reverse = typename reverse_impl<Seq>::type;
+using reverse = typename detail::reverse_impl<Seq>::type;
 
 template <typename Seq>
-using tail = typename tail_impl<Seq>::type;
+using tail = typename detail::tail_impl<Seq>::type;
 
 template <typename N, typename Seq>
-using take = typename take_impl<N,Seq>::type;
+using take = typename detail::take_impl<N,Seq>::type;
 
 template <typename SeqOne, typename SeqTwo>
-using zip = typename zip_impl<SeqOne,SeqTwo>::type;
+using zip = typename detail::zip_impl<SeqOne,SeqTwo>::type;
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -545,16 +556,8 @@ struct zip_wetp<
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-} // namespace detail
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  all
+//  all_impl
 //
 
 template <template <typename> class Pred, typename Seq>
@@ -587,7 +590,7 @@ struct all_impl<Pred, Seq<Head, Tail...>>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //
-//  and_
+//  and_impl
 //
 
 template <typename Seq>
@@ -702,7 +705,7 @@ struct concat_impl;
 template <typename... Args>
 struct concat_impl
 {
-  using type = typename detail::concat_wttp<tlist, Args...>::type;
+  using type = typename concat_wttp<tlist, Args...>::type;
 };
 
 
@@ -1043,7 +1046,7 @@ template <
 >
 struct map_impl
 {
-  using type = typename detail::map_wetp<Functor,tlist<>,Seq>::type;
+  using type = typename map_wetp<Functor,tlist<>,Seq>::type;
 };
 
 
@@ -1194,7 +1197,7 @@ template <
 struct replicate_impl<std::integral_constant<std::size_t, N>, T>
 {
   using type = typename
-    detail::replicate_wetp<
+    replicate_wetp<
       tlist<>, std::integral_constant<std::size_t, N>, T
     >::type
   ;
@@ -1219,7 +1222,7 @@ template <
 struct reverse_impl<Seq<Args...>>
 {
   using type = typename
-    detail::reverse_wetp<
+    reverse_wetp<
       Seq<>, Seq<Args...>
     >::type
   ;
@@ -1265,7 +1268,7 @@ template <
 struct take_impl<std::integral_constant<SizeType, N>, Seq<Head, Tail...>>
 {
   using type = typename
-    detail::take_wetp<
+    take_wetp<
       std::integral_constant<SizeType, N>, tlist<>, Seq<Head,Tail...>
     >::type
   ;
@@ -1288,9 +1291,17 @@ template <
 struct zip_impl<Seq1<Args1...>, Seq2<Args2...> >
 {
   using type = typename
-    detail::zip_wetp<tlist<>, Seq1<Args1...>, Seq2<Args2...> >::type
+    zip_wetp<tlist<>, Seq1<Args1...>, Seq2<Args2...> >::type
   ;
 };
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+} // namespace detail
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
